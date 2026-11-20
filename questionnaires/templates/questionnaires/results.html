@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<a href="{% url 'manager_dashboard' %}"
+   class="btn btn-outline-secondary mb-4">
+    Back to Dashboard
+</a>
+
+<h2>{{ questionnaire.title }}</h2>
+<p class="text-muted">Questionnaire Analysis</p>
+
+{% for result in analysis %}
+
+<div class="card p-4 shadow-sm mb-4">
+
+    <h5>{{ forloop.counter }}. {{ result.text }}</h5>
+
+    <p class="text-muted">
+        {{ result.count }} responses
+    </p>
+
+    {% for option in result.options %}
+
+        <div class="mb-3">
+
+            <div class="d-flex justify-content-between">
+                <span>{{ option.label }}</span>
+                <span>
+                    {{ option.count }} ({{ option.percentage }}%)
+                </span>
+            </div>
+
+            <div class="progress">
+                <div class="progress-bar"
+                     style="width: {{ option.percentage }}%;">
+                </div>
+            </div>
+
+        </div>
+
+    {% endfor %}
+
+    {% if result.average %}
+        <div class="alert alert-info">
+            Average: {{ result.average }}
+        </div>
+    {% endif %}
+
+    {% for example in result.examples %}
+        <div class="border-bottom py-2">
+            {{ example }}
+        </div>
+    {% endfor %}
+
+    {% if result.count == 0 %}
+        <p class="text-muted">No answers yet.</p>
+    {% endif %}
+
+</div>
+
+{% endfor %}
+
+<h3 class="mt-5 mb-3">Individual Submissions</h3>
+
+{% for submission in submissions %}
+
+<div class="card shadow-sm mb-3">
+
+    <div class="card-body">
+
+        <h5>
+            {{ submission.supplier }} —
+            {{ submission.product }}
+        </h5>
+
+        <p class="text-muted">
+            Submitted by: {{ submission.answered_by }}
+            <br>
+            Date: {{ submission.submitted_at }}
+        </p>
+
+        <details>
+            <summary class="btn btn-outline-primary btn-sm">
+                View Answers
+            </summary>
+
+            <div class="mt-3">
+
+                {% for detail in submission.details %}
+
+                    <p class="mb-1">
+                        <strong>{{ detail.question }}</strong>
+                    </p>
+
+                    <p>{{ detail.answer }}</p>
+
+                    <hr>
+
+                {% endfor %}
+
+            </div>
+        </details>
+
+    </div>
+
+</div>
+
+{% empty %}
+
+<div class="alert alert-secondary">
+    No completed submissions yet.
+</div>
+
+{% endfor %}
+
+{% endblock %}

@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2 class="mb-4">Organization Dashboard</h2>
+
+<div class="d-flex gap-2 mb-4">
+
+    <a href="{% url 'questionnaire_create' %}"
+       class="btn btn-primary">
+        + Create Questionnaire
+    </a>
+
+    <a href="{% url 'assignment_create' %}"
+       class="btn btn-success">
+        + Send Questionnaire
+    </a>
+
+</div>
+
+<div class="row mb-4">
+
+    <div class="col-md-4">
+        <div class="card p-3 shadow-sm">
+            <h6>Total Assignments</h6>
+            <h2>{{ total }}</h2>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card p-3 shadow-sm">
+            <h6>Completed</h6>
+            <h2 class="text-success">{{ completed }}</h2>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card p-3 shadow-sm">
+            <h6>Pending</h6>
+            <h2 class="text-warning">{{ pending }}</h2>
+        </div>
+    </div>
+
+</div>
+
+<div class="card p-4 shadow-sm mb-4">
+
+    <h5>Overall Completion Rate</h5>
+
+    <div class="progress mt-3" style="height: 25px;">
+        <div class="progress-bar bg-success"
+             style="width: {{ completion_rate }}%;">
+            {{ completion_rate }}%
+        </div>
+    </div>
+
+</div>
+
+<div class="card p-4 shadow-sm mb-4">
+
+    <h5>Supplier Performance</h5>
+
+    <table class="table table-striped mt-3">
+        <thead>
+            <tr>
+                <th>Supplier</th>
+                <th>Total</th>
+                <th>Completed</th>
+                <th>Completion Rate</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for supplier in supplier_rows %}
+                <tr>
+                    <td>{{ supplier.name }}</td>
+                    <td>{{ supplier.total }}</td>
+                    <td>{{ supplier.completed }}</td>
+                    <td>{{ supplier.completion_rate }}%</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="4">No data available.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</div>
+
+<div class="card p-4 shadow-sm mb-4">
+
+    <h5>Questionnaire Analysis</h5>
+
+    <table class="table mt-3">
+        <thead>
+            <tr>
+                <th>Questionnaire</th>
+                <th>Questions</th>
+                <th>Results</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for questionnaire in questionnaires %}
+
+                <tr>
+                    <td>{{ questionnaire.title }}</td>
+
+                    <td>
+                        <a href="{% url 'questionnaire_questions' questionnaire.id %}"
+                           class="btn btn-outline-primary btn-sm">
+                            View Questions
+                        </a>
+                    </td>
+
+                    <td>
+                        <a href="{% url 'questionnaire_results' questionnaire.id %}"
+                           class="btn btn-primary btn-sm">
+                            View Analysis
+                        </a>
+                    </td>
+                </tr>
+
+            {% empty %}
+
+                <tr>
+                    <td colspan="3">
+                        No questionnaires available.
+                    </td>
+                </tr>
+
+            {% endfor %}
+        </tbody>
+    </table>
+
+</div>
+
+<div class="card p-4 shadow-sm">
+
+    <h5>All Assignments</h5>
+
+    <div class="table-responsive">
+        <table class="table mt-3">
+            <thead>
+                <tr>
+                    <th>Supplier</th>
+                    <th>Product</th>
+                    <th>Questionnaire</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for assignment in assignments %}
+                    <tr>
+                        <td>{{ assignment.product.supplier.name }}</td>
+                        <td>{{ assignment.product.name }}</td>
+                        <td>{{ assignment.questionnaire.title }}</td>
+                        <td>
+                            {% if assignment.submitted_at %}
+                                <span class="badge bg-success">
+                                    Completed
+                                </span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark">
+                                    Pending
+                                </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="4">No assignments yet.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+{% endblock %}

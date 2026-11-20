@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<a href="{% url 'manager_dashboard' %}"
+   class="btn btn-outline-secondary mb-4">
+    Back to Dashboard
+</a>
+
+<h2>{{ questionnaire.title }}</h2>
+
+<p class="text-muted">
+    Add and manage questionnaire questions
+</p>
+
+<div class="card shadow-sm p-4 mb-4">
+
+    <h4>Existing Questions</h4>
+
+    {% for question in questions %}
+
+        <div class="border-bottom py-3">
+            <strong>
+                {{ question.order }}. {{ question.text }}
+            </strong>
+
+            <span class="badge bg-secondary">
+                {{ question.get_question_type_display }}
+            </span>
+
+            {% if question.show_if_order %}
+                <p class="text-muted mb-0 mt-2">
+                    Condition:
+                    Question {{ question.show_if_order }}
+                    = {{ question.show_if_answer }}
+                </p>
+            {% endif %}
+        </div>
+
+    {% empty %}
+
+        <p class="text-muted">No questions added yet.</p>
+
+    {% endfor %}
+
+</div>
+
+{% if locked %}
+
+    <div class="alert alert-warning">
+        This questionnaire has already been assigned.
+        Adding new questions is disabled.
+    </div>
+
+{% else %}
+
+    <div class="card shadow-sm p-4 mb-4">
+
+        <h4 class="mb-4">Add New Question</h4>
+
+        <form method="post">
+            {% csrf_token %}
+
+            {{ form.as_p }}
+
+            <button type="submit" class="btn btn-primary">
+                Add Question
+            </button>
+        </form>
+
+    </div>
+
+{% endif %}
+
+{% if questions %}
+
+    <a href="{% url 'assignment_create' %}"
+       class="btn btn-success">
+        Send Questionnaire
+    </a>
+
+{% endif %}
+
+{% endblock %}

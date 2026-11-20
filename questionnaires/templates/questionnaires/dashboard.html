@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2 class="mb-4">Dashboard</h2>
+
+{% if manager_view %}
+
+    <div class="alert alert-info">
+        Organization dashboard will be added in the next stage.
+        {% if request.user.is_superuser %}
+            <a href="/admin/">Open Django Admin</a>
+        {% endif %}
+    </div>
+
+{% else %}
+
+    <p class="text-muted">
+        Welcome, {{ request.user.username }}
+    </p>
+
+    <h4 class="mb-3">Assigned Questionnaires</h4>
+
+    {% for assignment in assignments %}
+
+        <div class="card shadow-sm mb-3">
+            <div class="card-body">
+
+                <h5>{{ assignment.questionnaire.title }}</h5>
+
+                <p class="text-muted mb-2">
+                    Product: {{ assignment.product.name }}
+                </p>
+
+                {% if assignment.submitted_at %}
+
+                    <span class="badge bg-success">Completed</span>
+
+                {% else %}
+
+                    <span class="badge bg-warning text-dark">
+                        Pending
+                    </span>
+
+                    <a href="{% url 'answer_assignment' assignment.id %}"
+                       class="btn btn-primary btn-sm float-end">
+                        Answer Questionnaire
+                    </a>
+
+                {% endif %}
+
+            </div>
+        </div>
+
+    {% empty %}
+
+        <div class="alert alert-secondary">
+            No questionnaires have been assigned to your company.
+        </div>
+
+    {% endfor %}
+
+{% endif %}
+
+{% endblock %}

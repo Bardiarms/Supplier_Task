@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>{{ assignment.questionnaire.title }}</h2>
+
+<p class="text-muted">
+    Product: {{ assignment.product.name }}
+</p>
+
+{% if assignment.submitted_at %}
+
+    <div class="alert alert-success">
+        This questionnaire has already been submitted.
+    </div>
+
+    <a href="{% url 'dashboard' %}" class="btn btn-secondary">
+        Back to Dashboard
+    </a>
+
+{% else %}
+
+    {% if errors %}
+        <div class="alert alert-danger">
+            {% for error in errors %}
+                <p class="mb-1">{{ error }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <form method="post" id="questionnaire-form">
+        {% csrf_token %}
+
+        {% for question in questions %}
+
+            <div class="card mb-3 question-card"
+                 data-order="{{ question.order }}"
+                 data-type="{{ question.question_type }}"
+                 data-depends="{{ question.show_if_order|default_if_none:'' }}"
+                 data-expected="{{ question.show_if_answer }}">
+
+                <div class="card-body">
+
+                    <h5>
+                        {{ question.order }}. {{ question.text }}
+                        {% if question.required %}
+                            <span class="text-danger">*</span>
+                        {% endif %}
+                    </h5>
+
+                    {% if question.question_type == "yes_no" %}
+
+                        <label class="me-3">
+                            <input type="radio"
+                                   name="question_{{ question.id }}"
+                                   value="yes"> Yes
+                        </label>
+
+                        <label>
+                            <input type="radio"
+                                   name="question_{{ question.id }}"
+                                   value="no"> No
+                        </label>
+
+                    {% elif question.question_type == "single" or question.question_type == "multiple" %}
+
+                        {% for option in question.options %}
+
+                            <div class="form-check">
+
+                                {% if question.question_type == "single" %}
+
+                                    <input class="form-check-input"
+                                           type="radio"
+                                           name="question_{{ question.id }}"
+                                           value="{{ option }}">
+
+                                {% else %}
+
+                                    <input class="form-check-input"
+                                           type="checkbox"
+                                           name="question_{{ question.id }}"
+                                           value="{{ option }}">
+
+                                {% endif %}
+
+                                <label class="form-check-label">
+                                    {{ option }}
+                                </label>
+                            </div>
+
+                        {% endfor %}
+
+                    {% elif question.question_type == "long_text" %}
+
+                        <textarea class="form-control"
+                                  name="question_{{ question.id }}"
+                                  rows="4"></textarea>
+
+                    {% elif question.question_type == "number" %}
+
+                        <input class="form-control"
+                               type="number"
+                               step="any"
+                               name="question_{{ question.id }}">
+
+                    {% elif question.question_type == "date" %}
+
+                        <input class="form-control"
+                               type="date"
+                               name="question_{{ question.id }}">
+
+                    {% elif question.question_type == "rating" %}
+
+                        <select class="form-select"
+                                name="question_{{ question.id }}">
+                            <option value="">Select rating</option>
+                            {% for rating in "12345" %}
+                                <option value="{{ rating }}">{{ rating }}</option>
+                            {% endfor %}
+                        </select>
+
+                    {% else %}
+
+                        <input class="form-control"
+                               type="text"
+                               name="question_{{ question.id }}">
+
+                    {% endif %}
+
+                </div>
+            </div>
+
+        {% endfor %}
+
+        <button class="btn btn-success" type="submit">
+            Submit Answers
+        </button>
+
+    </form>
+
+{% endif %}
+
+<script>
+const form = document.getElementById("questionnaire-form");
+
+if (form) {
+    const cards = [...document.querySelectorAll(".question-card")];
+
+    function getAnswer(card) {
+        const type = card.dataset.type;
+
+        if (type === "multiple") {
+            return [...card.querySelectorAll("input:checked")]
+                .map(input => input.value);
+        }
+
+        const selected = card.querySelector("input:checked");
+
+        if (selected) {
+            return selected.value;
+        }
+
+        const field = card.querySelector(
+            "input[type=text], input[type=number], input[type=date], textarea, select"
+        );
+
+        return field ? field.value : "";
+    }
+
+    function updateQuestions() {
+        const answers = {};
+
+        for (const card of cards) {
+            const order = card.dataset.order;
+            const depends = card.dataset.depends;
+            const expected = card.dataset.expected;
+
+            let visible = true;
+
+            if (depends !== "") {
+                const parentAnswer = answers[depends];
+
+                visible = Array.isArray(parentAnswer)
+                    ? parentAnswer.includes(expected)
+                    : parentAnswer === expected;
+            }
+
+            card.style.display = visible ? "" : "none";
+
+            card.querySelectorAll("input, textarea, select")
+                .forEach(input => {
+                    input.disabled = !visible;
+                });
+
+            if (visible) {
+                answers[order] = getAnswer(card);
+            }
+        }
+    }
+
+    form.addEventListener("change", updateQuestions);
+    form.addEventListener("input", updateQuestions);
+
+    updateQuestions();
+}
+</script>
+
+{% endblock %}
